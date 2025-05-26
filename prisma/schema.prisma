@@ -1,0 +1,740 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model asb_assemblies {
+  id                  String              @id(map: "PK__assembli__3213E83FA9001C63") @default(dbgenerated("newid()"), map: "DF__assemblies__id__160F4887") @db.UniqueIdentifier
+  customer_id         String              @db.UniqueIdentifier
+  assemblyType_id     String              @db.UniqueIdentifier
+  assemblyDate        DateTime            @db.Date
+  description         String?             @db.NVarChar(Max)
+  createdAt           DateTime            @default(now(), map: "DF__assemblie__creat__17036CC0")
+  updatedAt           DateTime            @default(now(), map: "DF__assemblie__updat__17F790F9")
+  deletedAt           DateTime?
+  asb_assembliesTypes asb_assembliesTypes @relation(fields: [assemblyType_id], references: [id], onUpdate: NoAction, map: "FK_assemblies_assemblyType")
+  cus_customers       cus_customers       @relation(fields: [customer_id], references: [id], onUpdate: NoAction, map: "FK_assemblies_customer")
+  asb_documents       asb_documents[]
+  asb_meetings        asb_meetings[]
+  asb_resolutions     asb_resolutions[]
+}
+
+model asb_assembliesTypes {
+  id              String           @id(map: "PK__assembli__3213E83F366D0844") @default(dbgenerated("newid()"), map: "DF__assembliesTy__id__18EBB532") @db.UniqueIdentifier
+  typeName        String           @unique(map: "UQ__assembli__A20CDB587A12338B") @db.VarChar(255)
+  typeDescription String?          @db.NVarChar(Max)
+  createdAt       DateTime         @default(now(), map: "DF__assemblie__creat__19DFD96B")
+  updatedAt       DateTime         @default(now(), map: "DF__assemblie__updat__1AD3FDA4")
+  deletedAt       DateTime?
+  asb_assemblies  asb_assemblies[]
+}
+
+model asb_documents {
+  id                   String                 @id(map: "PK__document__3213E83F7979168A") @default(dbgenerated("newid()"), map: "DF__documents__id__3587F3E0") @db.UniqueIdentifier
+  assembly_id          String                 @db.UniqueIdentifier
+  documentName         String                 @db.VarChar(255)
+  documentType         String?                @db.VarChar(50)
+  documentUrl          String?                @db.NVarChar(Max)
+  description          String?                @db.NVarChar(Max)
+  createdAt            DateTime               @default(now(), map: "DF__documents__creat__367C1819")
+  updatedAt            DateTime               @default(now(), map: "DF__documents__updat__37703C52")
+  deletedAt            DateTime?
+  asb_assemblies       asb_assemblies         @relation(fields: [assembly_id], references: [id], onUpdate: NoAction, map: "FK_documents_assembly")
+  asb_documentVersions asb_documentVersions[]
+  asb_signsDocuments   asb_signsDocuments[]
+}
+
+model asb_documentVersions {
+  id            String        @id(map: "PK__document__3213E83F187B4273") @default(dbgenerated("newid()"), map: "DF__documentVers__id__3864608B") @db.UniqueIdentifier
+  document_id   String        @db.UniqueIdentifier
+  versionNumber Int
+  documentUrl   String        @db.NVarChar(Max)
+  changeLog     String?       @db.NVarChar(Max)
+  createdAt     DateTime      @default(now(), map: "DF__documentV__creat__395884C4")
+  updatedAt     DateTime      @default(now(), map: "DF__documentV__updat__3A4CA8FD")
+  deletedAt     DateTime?
+  asb_documents asb_documents @relation(fields: [document_id], references: [id], onUpdate: NoAction, map: "FK_documentVersions_document")
+}
+
+model asb_meetingAgendas {
+  id                String       @id(map: "PK__meetingA__3213E83FA467DC56") @default(dbgenerated("newid()"), map: "DF__meetingAgend__id__4C6B5938") @db.UniqueIdentifier
+  meeting_id        String       @db.UniqueIdentifier
+  agendaItemNumber  Int
+  agendaTitle       String       @db.VarChar(255)
+  agendaDescription String?      @db.NVarChar(Max)
+  createdAt         DateTime     @default(now(), map: "DF__meetingAg__creat__4D5F7D71")
+  updatedAt         DateTime     @default(now(), map: "DF__meetingAg__updat__4E53A1AA")
+  deletedAt         DateTime?
+  asb_meetings      asb_meetings @relation(fields: [meeting_id], references: [id], onUpdate: NoAction, map: "FK_meetingAgendas_meeting")
+}
+
+model asb_meetingAttendance {
+  id            String       @id(map: "PK__meetingA__3213E83F743133C1") @default(dbgenerated("newid()"), map: "DF__meetingAtten__id__4F47C5E3") @db.UniqueIdentifier
+  meeting_id    String       @db.UniqueIdentifier
+  person_id     String       @db.UniqueIdentifier
+  present       Boolean      @default(false, map: "DF__meetingAt__prese__503BEA1C")
+  arrivalTime   DateTime?
+  departureTime DateTime?
+  notes         String?      @db.NVarChar(Max)
+  createdAt     DateTime     @default(now(), map: "DF__meetingAt__creat__51300E55")
+  updatedAt     DateTime     @default(now(), map: "DF__meetingAt__updat__5224328E")
+  deletedAt     DateTime?
+  asb_meetings  asb_meetings @relation(fields: [meeting_id], references: [id], onUpdate: NoAction, map: "FK_meetingAttendance_meeting")
+  grl_persons   grl_persons  @relation(fields: [person_id], references: [id], onUpdate: NoAction, map: "FK_meetingAttendance_person")
+}
+
+model asb_meetingMinutes {
+  id                   String       @id(map: "PK__meetingM__3213E83F3C61657A") @default(dbgenerated("newid()"), map: "DF__meetingMinut__id__531856C7") @db.UniqueIdentifier
+  meeting_id           String       @db.UniqueIdentifier
+  minuteContent        String       @db.NVarChar(Max)
+  recordedBy_person_id String       @db.UniqueIdentifier
+  createdAt            DateTime     @default(now(), map: "DF__meetingMi__creat__540C7B00")
+  updatedAt            DateTime     @default(now(), map: "DF__meetingMi__updat__55009F39")
+  deletedAt            DateTime?
+  asb_meetings         asb_meetings @relation(fields: [meeting_id], references: [id], onUpdate: NoAction, map: "FK_meetingMinutes_meeting")
+  grl_persons          grl_persons  @relation(fields: [recordedBy_person_id], references: [id], onUpdate: NoAction, map: "FK_meetingMinutes_recordedBy")
+}
+
+model asb_meetings {
+  id                    String                  @id(map: "PK__meetings__3213E83FA3D76F30") @default(dbgenerated("newid()"), map: "DF__meetings__id__55F4C372") @db.UniqueIdentifier
+  assembly_id           String                  @db.UniqueIdentifier
+  meetingType_id        String                  @db.UniqueIdentifier
+  meetingDate           DateTime                @db.Date
+  meetingStartTime      DateTime
+  meetingEndTime        DateTime
+  location_id           String?                 @db.UniqueIdentifier
+  agenda                String?                 @db.NVarChar(Max)
+  minutes               String?                 @db.NVarChar(Max)
+  createdAt             DateTime                @default(now(), map: "DF__meetings__create__56E8E7AB")
+  updatedAt             DateTime                @default(now(), map: "DF__meetings__update__57DD0BE4")
+  deletedAt             DateTime?
+  asb_meetingAgendas    asb_meetingAgendas[]
+  asb_meetingAttendance asb_meetingAttendance[]
+  asb_meetingMinutes    asb_meetingMinutes[]
+  asb_assemblies        asb_assemblies          @relation(fields: [assembly_id], references: [id], onUpdate: NoAction, map: "FK_meetings_assembly")
+  grl_locations         grl_locations?          @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_meetings_location")
+  asb_meetingsTypes     asb_meetingsTypes       @relation(fields: [meetingType_id], references: [id], onUpdate: NoAction, map: "FK_meetings_meetingType")
+  asb_meetingsProposals asb_meetingsProposals[]
+}
+
+model asb_meetingsProposals {
+  id                  String                @id(map: "PK__meetings__3213E83FDA16FBCB") @default(dbgenerated("newid()"), map: "DF__meetingsProp__id__58D1301D") @db.UniqueIdentifier
+  meeting_id          String                @db.UniqueIdentifier
+  proposalTitle       String                @db.VarChar(255)
+  proposalDescription String?               @db.NVarChar(Max)
+  proposalsType_id    String                @db.UniqueIdentifier
+  createdAt           DateTime              @default(now(), map: "DF__meetingsP__creat__59C55456")
+  updatedAt           DateTime              @default(now(), map: "DF__meetingsP__updat__5AB9788F")
+  deletedAt           DateTime?
+  asb_meetings        asb_meetings          @relation(fields: [meeting_id], references: [id], onUpdate: NoAction, map: "FK_meetingsProposals_meeting")
+  asb_proposalsTypes  asb_proposalsTypes    @relation(fields: [proposalsType_id], references: [id], onUpdate: NoAction, map: "FK_meetingsProposals_proposalsType")
+  asb_proposalsVoting asb_proposalsVoting[]
+}
+
+model asb_meetingsTypes {
+  id              String         @id(map: "PK__meetings__3213E83F5C8EABB9") @default(dbgenerated("newid()"), map: "DF__meetingsType__id__5BAD9CC8") @db.UniqueIdentifier
+  typeName        String         @unique(map: "UQ__meetings__A20CDB58C3BE43B1") @db.VarChar(255)
+  typeDescription String?        @db.NVarChar(Max)
+  createdAt       DateTime       @default(now(), map: "DF__meetingsT__creat__5CA1C101")
+  updatedAt       DateTime       @default(now(), map: "DF__meetingsT__updat__5D95E53A")
+  deletedAt       DateTime?
+  asb_meetings    asb_meetings[]
+}
+
+model asb_proposalsTypes {
+  id                    String                  @id(map: "PK__proposal__3213E83FE04D5D9E") @default(dbgenerated("newid()"), map: "DF__proposalsTyp__id__793DFFAF") @db.UniqueIdentifier
+  typeName              String                  @unique(map: "UQ__proposal__A20CDB582398223E") @db.VarChar(255)
+  typeDescription       String?                 @db.NVarChar(Max)
+  createdAt             DateTime                @default(now(), map: "DF__proposals__creat__7A3223E8")
+  updatedAt             DateTime                @default(now(), map: "DF__proposals__updat__7B264821")
+  deletedAt             DateTime?
+  asb_meetingsProposals asb_meetingsProposals[]
+}
+
+model asb_proposalsVoting {
+  id                    String                @id(map: "PK__proposal__3213E83F263AC8F1") @default(dbgenerated("newid()"), map: "DF__proposalsVot__id__7C1A6C5A") @db.UniqueIdentifier
+  meetingProposal_id    String                @db.UniqueIdentifier
+  person_id             String                @db.UniqueIdentifier
+  vote                  String                @db.VarChar(50)
+  remarks               String?               @db.NVarChar(Max)
+  createdAt             DateTime              @default(now(), map: "DF__proposals__creat__7D0E9093")
+  updatedAt             DateTime              @default(now(), map: "DF__proposals__updat__7E02B4CC")
+  deletedAt             DateTime?
+  asb_meetingsProposals asb_meetingsProposals @relation(fields: [meetingProposal_id], references: [id], onUpdate: NoAction, map: "FK_proposalsVoting_meetingProposal")
+  grl_persons           grl_persons           @relation(fields: [person_id], references: [id], onUpdate: NoAction, map: "FK_proposalsVoting_person")
+}
+
+model asb_resolutions {
+  id                String         @id(map: "PK__resoluti__3213E83FFB601913") @default(dbgenerated("newid()"), map: "DF__resolutions__id__7EF6D905") @db.UniqueIdentifier
+  assembly_id       String         @db.UniqueIdentifier
+  resolutionTitle   String         @db.VarChar(255)
+  resolutionContent String         @db.NVarChar(Max)
+  approved          Boolean        @default(false, map: "DF__resolutio__appro__7FEAFD3E")
+  createdAt         DateTime       @default(now(), map: "DF__resolutio__creat__00DF2177")
+  updatedAt         DateTime       @default(now(), map: "DF__resolutio__updat__01D345B0")
+  deletedAt         DateTime?
+  asb_assemblies    asb_assemblies @relation(fields: [assembly_id], references: [id], onUpdate: NoAction, map: "FK_resolutions_assembly")
+}
+
+model asb_signsDocuments {
+  id            String        @id(map: "PK__signsDoc__3213E83FD84D6C92") @default(dbgenerated("newid()"), map: "DF__signsDocumen__id__0C50D423") @db.UniqueIdentifier
+  document_id   String        @db.UniqueIdentifier
+  person_id     String        @db.UniqueIdentifier
+  signDate      DateTime
+  signMethod    String        @db.VarChar(50)
+  signImage     String?       @db.VarChar(255)
+  createdAt     DateTime      @default(now(), map: "DF__signsDocu__creat__0D44F85C")
+  updatedAt     DateTime      @default(now(), map: "DF__signsDocu__updat__0E391C95")
+  deletedAt     DateTime?
+  asb_documents asb_documents @relation(fields: [document_id], references: [id], onUpdate: NoAction, map: "FK_signsDocuments_document")
+  grl_persons   grl_persons   @relation(fields: [person_id], references: [id], onUpdate: NoAction, map: "FK_signsDocuments_person")
+}
+
+model cus_customerRoles {
+  id                           String                         @id(map: "PK__customer__3213E83FC7BC19A2") @default(dbgenerated("newid()"), map: "DF__customerRole__id__2BFE89A6") @db.UniqueIdentifier
+  roleName                     String                         @unique(map: "UQ__customer__B194786149CA6903") @db.VarChar(50)
+  roleDescription              String?                        @db.NVarChar(Max)
+  createdAt                    DateTime                       @default(now(), map: "DF__customerR__creat__2CF2ADDF")
+  updatedAt                    DateTime                       @default(now(), map: "DF__customerR__updat__2DE6D218")
+  deletedAt                    DateTime?
+  cus_customersRepresentatives cus_customersRepresentatives[]
+}
+
+model cus_customers {
+  id                           String                         @id(map: "PK__customer__3213E83FADA95E16") @default(dbgenerated("newid()"), map: "DF__customers__id__2EDAF651") @db.UniqueIdentifier
+  person_id                    String                         @db.UniqueIdentifier
+  customerType                 String?                        @db.VarChar(50)
+  location_id                  String?                        @db.UniqueIdentifier
+  email                        String                         @db.VarChar(255)
+  phone                        String                         @db.VarChar(20)
+  logo                         String?                        @db.NVarChar(Max)
+  stocks                       Int?
+  percentage                   Decimal?                       @db.Decimal(18, 0)
+  status                       Boolean                        @default(true, map: "DF__customers__statu__2FCF1A8A")
+  createdAt                    DateTime                       @default(now(), map: "DF__customers__creat__30C33EC3")
+  updatedAt                    DateTime                       @default(now(), map: "DF__customers__updat__31B762FC")
+  deletedAt                    DateTime?
+  asb_assemblies               asb_assemblies[]
+  grl_locations                grl_locations?                 @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_customers_location")
+  grl_persons                  grl_persons                    @relation(fields: [person_id], references: [id], onUpdate: NoAction, map: "FK_customers_person")
+  cus_customersRepresentatives cus_customersRepresentatives[]
+  cus_shareholders             cus_shareholders[]
+}
+
+model cus_customersRepresentatives {
+  id                String            @id(map: "PK__customer__3213E83F84DFC7DC") @default(dbgenerated("newid()"), map: "DF__customersRep__id__32AB8735") @db.UniqueIdentifier
+  customer_id       String            @db.UniqueIdentifier
+  person_id         String            @db.UniqueIdentifier
+  customerRole_id   String            @db.UniqueIdentifier
+  startDate         DateTime          @db.Date
+  endDate           DateTime?         @db.Date
+  createdAt         DateTime          @default(now(), map: "DF__customers__creat__339FAB6E")
+  updatedAt         DateTime          @default(now(), map: "DF__customers__updat__3493CFA7")
+  deletedAt         DateTime?
+  cus_customers     cus_customers     @relation(fields: [customer_id], references: [id], onUpdate: NoAction, map: "FK_customersRepresentatives_customer")
+  cus_customerRoles cus_customerRoles @relation(fields: [customerRole_id], references: [id], onUpdate: NoAction, map: "FK_customersRepresentatives_customerRole")
+  grl_persons       grl_persons       @relation(fields: [person_id], references: [id], onUpdate: NoAction, map: "FK_customersRepresentatives_person")
+}
+
+model cus_shareholderRepresentatives {
+  id               String           @id(map: "PK__sharehol__3213E83FC2AAE697") @default(dbgenerated("newid()"), map: "DF__shareholderR__id__0697FACD") @db.UniqueIdentifier
+  shareholder_id   String           @db.UniqueIdentifier
+  person_id        String           @db.UniqueIdentifier
+  startDate        DateTime         @db.Date
+  endDate          DateTime?        @db.Date
+  createdAt        DateTime         @default(now(), map: "DF__sharehold__creat__078C1F06")
+  updatedAt        DateTime         @default(now(), map: "DF__sharehold__updat__0880433F")
+  deletedAt        DateTime?
+  grl_persons      grl_persons      @relation(fields: [person_id], references: [id], onUpdate: NoAction, map: "FK_shareholderRepresentatives_person")
+  cus_shareholders cus_shareholders @relation(fields: [shareholder_id], references: [id], onUpdate: NoAction, map: "FK_shareholderRepresentatives_shareholder")
+}
+
+model cus_shareholders {
+  id                             String                           @id(map: "PK__sharehol__3213E83FE7013737") @default(dbgenerated("newid()"), map: "DF__shareholders__id__09746778") @db.UniqueIdentifier
+  person_id                      String                           @db.UniqueIdentifier
+  customer_id                    String                           @db.UniqueIdentifier
+  shareCount                     Int
+  sharePercentage                Decimal                          @db.Decimal(5, 2)
+  createdAt                      DateTime                         @default(now(), map: "DF__sharehold__creat__0A688BB1")
+  updatedAt                      DateTime                         @default(now(), map: "DF__sharehold__updat__0B5CAFEA")
+  deletedAt                      DateTime?
+  cus_shareholderRepresentatives cus_shareholderRepresentatives[]
+  cus_customers                  cus_customers                    @relation(fields: [customer_id], references: [id], onUpdate: NoAction, map: "FK_shareholders_customer")
+  grl_persons                    grl_persons                      @relation(fields: [person_id], references: [id], onUpdate: NoAction, map: "FK_shareholders_person")
+}
+
+model emp_companyDepartments {
+  id                           Int                      @id(map: "PK__companyD__3213E83F281DD7A1") @default(autoincrement())
+  name                         String                   @db.VarChar(255)
+  description                  String?                  @db.VarChar(255)
+  company_id                   String                   @db.UniqueIdentifier
+  departmentParent_id          Int?
+  boss_id                      String?                  @db.UniqueIdentifier
+  createdAt                    DateTime                 @default(now(), map: "DF__companyDe__creat__22751F6C")
+  updatedAt                    DateTime                 @default(now(), map: "DF__companyDe__updat__236943A5")
+  deletedAt                    DateTime?
+  emp_employees                emp_employees?           @relation(fields: [boss_id], references: [id], onUpdate: NoAction, map: "FK_companyDepartaments_boss")
+  grl_company                  grl_company              @relation(fields: [company_id], references: [id], onUpdate: NoAction, map: "FK_companyDepartaments_company")
+  emp_companyDepartments       emp_companyDepartments?  @relation("emp_companyDepartmentsToemp_companyDepartments", fields: [departmentParent_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_companyDepartaments_parent")
+  other_emp_companyDepartments emp_companyDepartments[] @relation("emp_companyDepartmentsToemp_companyDepartments")
+  emp_companyPositions         emp_companyPositions[]
+}
+
+model emp_companyPositions {
+  id                         Int                    @id(map: "PK__companyP__3213E83F377F9751") @default(autoincrement())
+  name                       String                 @db.VarChar(255)
+  description                String?                @db.VarChar(255)
+  positionParent_id          Int?
+  department_id              Int
+  createdAt                  DateTime               @default(now(), map: "DF__companyPo__creat__245D67DE")
+  updatedAt                  DateTime               @default(now(), map: "DF__companyPo__updat__25518C17")
+  deletedAt                  DateTime?
+  emp_companyDepartments     emp_companyDepartments @relation(fields: [department_id], references: [id], onUpdate: NoAction, map: "FK_companyPositions_department")
+  emp_companyPositions       emp_companyPositions?  @relation("emp_companyPositionsToemp_companyPositions", fields: [positionParent_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_companyPositions_parent")
+  other_emp_companyPositions emp_companyPositions[] @relation("emp_companyPositionsToemp_companyPositions")
+  emp_employeeHireInfo       emp_employeeHireInfo[]
+}
+
+model emp_contract_type {
+  id                   Int                    @id(map: "PK__contract__3213E83FBFBEBB10") @default(autoincrement())
+  name                 String                 @unique(map: "UQ__contract__72E12F1B7062DEF5") @db.VarChar(50)
+  description          String?                @db.NVarChar(Max)
+  time                 Int?
+  createdAt            DateTime               @default(now(), map: "DF__contract___creat__282DF8C2")
+  updatedAt            DateTime               @default(now(), map: "DF__contract___updat__29221CFB")
+  deletedAt            DateTime?
+  emp_employeeHireInfo emp_employeeHireInfo[]
+}
+
+model emp_employeeExperiencesInfo {
+  id               String        @id(map: "PK__employee__3213E83FB4C5F168") @default(dbgenerated("newid()"), map: "DF__employeeExpe__id__3B40CD36") @db.UniqueIdentifier
+  employee_id      String        @db.UniqueIdentifier
+  companyName      String        @db.VarChar(255)
+  jobTitle         String        @db.VarChar(255)
+  startDate        DateTime      @db.Date
+  endDate          DateTime?     @db.Date
+  responsibilities String?       @db.NVarChar(Max)
+  achievements     String?       @db.NVarChar(Max)
+  createdAt        DateTime      @default(now(), map: "DF__employeeE__creat__3C34F16F")
+  updatedAt        DateTime      @default(now(), map: "DF__employeeE__updat__3D2915A8")
+  deletedAt        DateTime?
+  emp_employees    emp_employees @relation(fields: [employee_id], references: [id], onUpdate: NoAction, map: "FK_employeeExperiencesInfo_employee")
+}
+
+model emp_employeeHireInfo {
+  id                   String               @id(map: "PK__employee__3213E83F0C7C1C45") @default(dbgenerated("newid()"), map: "DF__employeeHire__id__3E1D39E1") @db.UniqueIdentifier
+  employee_id          String               @db.UniqueIdentifier
+  hireDate             DateTime             @db.Date
+  contractType_id      Int
+  initialSalary        Decimal              @db.Decimal(10, 2)
+  position_id          Int
+  probationPeriod      Int?
+  terminationDate      DateTime?            @db.Date
+  remarks              String?              @db.NVarChar(Max)
+  createdAt            DateTime             @default(now(), map: "DF__employeeH__creat__3F115E1A")
+  updatedAt            DateTime             @default(now(), map: "DF__employeeH__updat__40058253")
+  deletedAt            DateTime?
+  emp_contract_type    emp_contract_type    @relation(fields: [contractType_id], references: [id], onUpdate: NoAction, map: "FK_employeeHireInfo_contractType")
+  emp_employees        emp_employees        @relation(fields: [employee_id], references: [id], onUpdate: NoAction, map: "FK_employeeHireInfo_employee")
+  emp_companyPositions emp_companyPositions @relation(fields: [position_id], references: [id], onUpdate: NoAction, map: "FK_employeeHireInfo_positions")
+}
+
+model emp_employeePersonalInfo {
+  id            String        @id(map: "PK__employee__3213E83F529744E0") @default(dbgenerated("newid()"), map: "DF__employeePers__id__40F9A68C") @db.UniqueIdentifier
+  employee_id   String        @db.UniqueIdentifier
+  bloodType     String?       @db.VarChar(5)
+  location_id   String        @db.UniqueIdentifier
+  createdAt     DateTime      @default(now(), map: "DF__employeeP__creat__41EDCAC5")
+  updatedAt     DateTime      @default(now(), map: "DF__employeeP__updat__42E1EEFE")
+  deletedAt     DateTime?
+  grl_locations grl_locations @relation(fields: [location_id], references: [id], onUpdate: NoAction, map: "FK_employee_location")
+  emp_employees emp_employees @relation(fields: [employee_id], references: [id], onUpdate: NoAction, map: "FK_employeePersonalInfo_employee")
+}
+
+model emp_employees {
+  id                          String                        @id(map: "PK__employee__3213E83F2743A8A6") @default(dbgenerated("newid()"), map: "DF__employees__id__43D61337") @db.UniqueIdentifier
+  person_id                   String                        @db.UniqueIdentifier
+  user_id                     String                        @db.UniqueIdentifier
+  company_id                  String                        @db.UniqueIdentifier
+  createdAt                   DateTime                      @default(now(), map: "DF__employees__creat__44CA3770")
+  updatedAt                   DateTime                      @default(now(), map: "DF__employees__updat__45BE5BA9")
+  deletedAt                   DateTime?
+  emp_companyDepartments      emp_companyDepartments[]
+  emp_employeeExperiencesInfo emp_employeeExperiencesInfo[]
+  emp_employeeHireInfo        emp_employeeHireInfo[]
+  emp_employeePersonalInfo    emp_employeePersonalInfo[]
+  grl_company                 grl_company                   @relation(fields: [company_id], references: [id], onUpdate: NoAction, map: "FK_employees_company")
+  grl_persons                 grl_persons                   @relation(fields: [person_id], references: [id], onUpdate: NoAction, map: "FK_employees_person")
+  grl_users                   grl_users                     @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "FK_employees_user")
+  emp_employeeStudiesInfo     emp_employeeStudiesInfo[]
+  emp_payroll                 emp_payroll[]
+}
+
+model emp_employeeStudiesInfo {
+  id            String        @id(map: "PK__employee__3213E83F3D5C4E4A") @default(dbgenerated("newid()"), map: "DF__employeeStud__id__46B27FE2") @db.UniqueIdentifier
+  employee_id   String        @db.UniqueIdentifier
+  institution   String        @db.VarChar(255)
+  degree        String        @db.VarChar(255)
+  fieldStudy    String        @db.VarChar(255)
+  startDate     DateTime      @db.Date
+  endDate       DateTime?     @db.Date
+  grade         String?       @db.VarChar(50)
+  description   String?       @db.NVarChar(Max)
+  createdAt     DateTime      @default(now(), map: "DF__employeeS__creat__47A6A41B")
+  updatedAt     DateTime      @default(now(), map: "DF__employeeS__updat__489AC854")
+  deletedAt     DateTime?
+  emp_employees emp_employees @relation(fields: [employee_id], references: [id], onUpdate: NoAction, map: "FK_employeeStudiesInfo_employee")
+}
+
+model emp_payroll {
+  id                     String                   @id(map: "PK__payroll__3213E83F883CAA09") @default(dbgenerated("newid()"), map: "DF__payroll__id__634EBE90") @db.UniqueIdentifier
+  employee_id            String                   @db.UniqueIdentifier
+  payrollDate            DateTime                 @db.Date
+  payPeriodStart         DateTime                 @db.Date
+  payPeriodEnd           DateTime                 @db.Date
+  totalEarnings          Decimal                  @db.Decimal(10, 2)
+  totalDeductions        Decimal                  @db.Decimal(10, 2)
+  netPay                 Decimal                  @db.Decimal(10, 2)
+  createdAt              DateTime                 @default(now(), map: "DF__payroll__created__6442E2C9")
+  updatedAt              DateTime                 @default(now(), map: "DF__payroll__updated__65370702")
+  deletedAt              DateTime?
+  emp_employees          emp_employees            @relation(fields: [employee_id], references: [id], onUpdate: NoAction, map: "FK_payroll_employee")
+  emp_payrollDeductions  emp_payrollDeductions[]
+  emp_payrollPerceptions emp_payrollPerceptions[]
+}
+
+model emp_payrollConcepts {
+  id                     String                   @id(map: "PK__payrollC__3213E83FCE2FE30D") @default(dbgenerated("newid()"), map: "DF__payrollConce__id__662B2B3B") @db.UniqueIdentifier
+  conceptName            String                   @db.VarChar(255)
+  conceptType            String                   @db.VarChar(50)
+  conceptDescription     String?                  @db.NVarChar(Max)
+  value                  Decimal?                 @db.Decimal(18, 0)
+  percentage             Float?
+  isTaxable              Boolean                  @default(false, map: "DF__payrollCo__isTax__671F4F74")
+  createdAt              DateTime                 @default(now(), map: "DF__payrollCo__creat__681373AD")
+  updatedAt              DateTime                 @default(now(), map: "DF__payrollCo__updat__690797E6")
+  deletedAt              DateTime?
+  emp_payrollDeductions  emp_payrollDeductions[]
+  emp_payrollPerceptions emp_payrollPerceptions[]
+}
+
+model emp_payrollDeductions {
+  id                  String              @id(map: "PK__payrollD__3213E83F691C2D77") @default(dbgenerated("newid()"), map: "DF__payrollDeduc__id__69FBBC1F") @db.UniqueIdentifier
+  payroll_id          String              @db.UniqueIdentifier
+  payrollConcept_id   String              @db.UniqueIdentifier
+  deductionAmount     Decimal             @db.Decimal(10, 2)
+  createdAt           DateTime            @default(now(), map: "DF__payrollDe__creat__6AEFE058")
+  updatedAt           DateTime            @default(now(), map: "DF__payrollDe__updat__6BE40491")
+  deletedAt           DateTime?
+  emp_payroll         emp_payroll         @relation(fields: [payroll_id], references: [id], onUpdate: NoAction, map: "FK_payrollDeductions_payroll")
+  emp_payrollConcepts emp_payrollConcepts @relation(fields: [payrollConcept_id], references: [id], onUpdate: NoAction, map: "FK_payrollDeductions_payrollConcept")
+}
+
+model emp_payrollPerceptions {
+  id                  String              @id(map: "PK__payrollP__3213E83FCF16AA6F") @default(dbgenerated("newid()"), map: "DF__payrollPerce__id__6CD828CA") @db.UniqueIdentifier
+  payroll_id          String              @db.UniqueIdentifier
+  payrollConcept_id   String              @db.UniqueIdentifier
+  perceptionAmount    Decimal             @db.Decimal(10, 2)
+  createdAt           DateTime            @default(now(), map: "DF__payrollPe__creat__6DCC4D03")
+  updatedAt           DateTime            @default(now(), map: "DF__payrollPe__updat__6EC0713C")
+  deletedAt           DateTime?
+  emp_payroll         emp_payroll         @relation(fields: [payroll_id], references: [id], onUpdate: NoAction, map: "FK_payrollPerceptions_payroll")
+  emp_payrollConcepts emp_payrollConcepts @relation(fields: [payrollConcept_id], references: [id], onUpdate: NoAction, map: "FK_payrollPerceptions_payrollConcept")
+}
+
+model grl_auditLogs {
+  id            String       @id(map: "PK__auditLog__3213E83F4320EDFE") @default(dbgenerated("newid()"), map: "DF__auditLogs__id__1BC821DD") @db.UniqueIdentifier
+  tableName     String       @db.VarChar(255)
+  recordId      String?      @db.UniqueIdentifier
+  action        String       @db.VarChar(50)
+  changeDetails String?      @db.NVarChar(Max)
+  changedBy     String?      @db.UniqueIdentifier
+  changeDate    DateTime     @default(now(), map: "DF__auditLogs__chang__1CBC4616")
+  grl_persons   grl_persons? @relation(fields: [changedBy], references: [id], onUpdate: NoAction, map: "FK_auditLogs_changedBy")
+}
+
+model grl_cities {
+  id            Int             @id(map: "PK__cities__3213E83F22DC5396") @default(autoincrement())
+  state_id      Int
+  name          String          @db.VarChar(255)
+  createdAt     DateTime        @default(now(), map: "DF__cities__createdA__1DB06A4F")
+  updatedAt     DateTime        @default(now(), map: "DF__cities__updatedA__1EA48E88")
+  deletedAt     DateTime?
+  grl_states    grl_states      @relation(fields: [state_id], references: [id], onUpdate: NoAction, map: "FK_city_state")
+  grl_locations grl_locations[]
+}
+
+model grl_company {
+  id                     String                   @id(map: "PK__company__3213E83FC1194C51") @default(dbgenerated("newid()"), map: "DF__company__id__1F98B2C1") @db.UniqueIdentifier
+  nit                    Int
+  dv                     Int
+  commercialName         String                   @db.VarChar(255)
+  legalName              String                   @db.VarChar(255)
+  location_id            String?                  @db.UniqueIdentifier
+  legalRepresentative_id String?                  @db.UniqueIdentifier
+  contactPhone           Decimal                  @db.Decimal(18, 0)
+  email                  String                   @db.VarChar(255)
+  website                String?                  @db.VarChar(255)
+  createdAt              DateTime                 @default(now(), map: "DF__company__created__208CD6FA")
+  updatedAt              DateTime                 @default(now(), map: "DF__company__updated__2180FB33")
+  deletedAt              DateTime?
+  emp_companyDepartments emp_companyDepartments[]
+  emp_employees          emp_employees[]
+  grl_persons            grl_persons?             @relation(fields: [legalRepresentative_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_company_legalRepresentative")
+  grl_locations          grl_locations?           @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_company_location")
+}
+
+model grl_configs {
+  keys      String    @id(map: "PK__configs__2B3B21D010068B6F") @db.VarChar(50)
+  value     String    @db.VarChar(255)
+  createdAt DateTime  @default(now(), map: "DF__configs__created__2645B050")
+  updatedAt DateTime  @default(now(), map: "DF__configs__updated__2739D489")
+  deletedAt DateTime?
+}
+
+model grl_countries {
+  id            Int             @id(map: "PK__countrie__3213E83FF9265809") @default(autoincrement())
+  name          String          @db.VarChar(255)
+  createdAt     DateTime        @default(now(), map: "DF__countries__creat__2A164134")
+  updatedAt     DateTime        @default(now(), map: "DF__countries__updat__2B0A656D")
+  deletedAt     DateTime?
+  grl_locations grl_locations[]
+  grl_persons   grl_persons[]
+  grl_states    grl_states[]
+}
+
+model grl_locations {
+  id                                                    String                     @id(map: "PK__location__3213E83F3443DE3F") @default(dbgenerated("newid()"), map: "DF__locations__id__498EEC8D") @db.UniqueIdentifier
+  country_id                                            Int
+  state_id                                              Int
+  city_id                                               Int
+  roadType_1                                            Int?
+  street_1                                              Int?
+  streetLetter_1                                        String?                    @db.VarChar(2)
+  streetCom_1                                           String?                    @db.VarChar(50)
+  roadType_2                                            Int?
+  street_2                                              Int?
+  streetLetter_2                                        String?                    @db.VarChar(2)
+  streetCom_2                                           String?                    @db.VarChar(50)
+  complement                                            String?                    @db.VarChar(255)
+  postalCode                                            Int?
+  createdAt                                             DateTime                   @default(now(), map: "DF__locations__creat__4A8310C6")
+  updatedAt                                             DateTime                   @default(now(), map: "DF__locations__updat__4B7734FF")
+  deletedAt                                             DateTime?
+  asb_meetings                                          asb_meetings[]
+  cus_customers                                         cus_customers[]
+  emp_employeePersonalInfo                              emp_employeePersonalInfo[]
+  grl_company                                           grl_company[]
+  grl_roadTypes_grl_locations_roadType_1Togrl_roadTypes grl_roadTypes?             @relation("grl_locations_roadType_1Togrl_roadTypes", fields: [roadType_1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_grl_locations_grl_roadTypes")
+  grl_roadTypes_grl_locations_roadType_2Togrl_roadTypes grl_roadTypes?             @relation("grl_locations_roadType_2Togrl_roadTypes", fields: [roadType_2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_grl_locations_grl_roadTypes1")
+  grl_cities                                            grl_cities                 @relation(fields: [city_id], references: [id], onUpdate: NoAction, map: "FK_locations_city")
+  grl_countries                                         grl_countries              @relation(fields: [country_id], references: [id], onUpdate: NoAction, map: "FK_locations_country")
+  grl_states                                            grl_states                 @relation(fields: [state_id], references: [id], onUpdate: NoAction, map: "FK_locations_state")
+}
+
+model grl_notifications {
+  id               String    @id(map: "PK__notifica__3213E83FBAE27589") @default(dbgenerated("newid()"), map: "DF__notification__id__5E8A0973") @db.UniqueIdentifier
+  user_id          String    @db.UniqueIdentifier
+  message          String    @db.NVarChar(Max)
+  notificationDate DateTime  @default(now(), map: "DF__notificat__notif__5F7E2DAC")
+  isRead           Boolean   @default(false, map: "DF__notificat__isRea__607251E5")
+  createdAt        DateTime  @default(now(), map: "DF__notificat__creat__6166761E")
+  updatedAt        DateTime  @default(now(), map: "DF__notificat__updat__625A9A57")
+  deletedAt        DateTime?
+  grl_users        grl_users @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "FK_notifications_user")
+}
+
+model grl_permissions {
+  id                  Int                   @id(map: "PK__permissi__3213E83F129724B6") @default(autoincrement())
+  name                String                @unique(map: "UQ__permissi__72E12F1BEE979349") @db.VarChar(50)
+  description         String?               @db.VarChar(255)
+  createdAt           DateTime              @default(now(), map: "DF__permissio__creat__6FB49575")
+  updatedAt           DateTime              @default(now(), map: "DF__permissio__updat__70A8B9AE")
+  deletedAt           DateTime?
+  grl_rolePermissions grl_rolePermissions[]
+}
+
+model grl_persons {
+  id                             String                           @id(map: "PK__persons__3213E83F4C2561E7") @default(dbgenerated("newid()"), map: "DF__persons__id__719CDDE7") @db.UniqueIdentifier
+  idenType_id                    Int
+  identification                 String                           @unique(map: "UQ__persons__AAA7C1F522749F79") @db.VarChar(255)
+  personType                     String                           @db.NChar(10)
+  firstName                      String?                          @db.VarChar(50)
+  middelName                     String?                          @db.VarChar(50)
+  lastName                       String?                          @db.VarChar(50)
+  secondLastName                 String?                          @db.VarChar(50)
+  legalName                      String?                          @db.VarChar(255)
+  dateBirth                      DateTime?                        @db.Date
+  gender                         String?                          @db.VarChar(50)
+  nationality_id                 Int?
+  createdAt                      DateTime                         @default(now(), map: "DF__persons__created__72910220")
+  updatedAt                      DateTime                         @default(now(), map: "DF__persons__updated__73852659")
+  deletedAt                      DateTime?
+  asb_meetingAttendance          asb_meetingAttendance[]
+  asb_meetingMinutes             asb_meetingMinutes[]
+  asb_proposalsVoting            asb_proposalsVoting[]
+  asb_signsDocuments             asb_signsDocuments[]
+  cus_customers                  cus_customers[]
+  cus_customersRepresentatives   cus_customersRepresentatives[]
+  cus_shareholderRepresentatives cus_shareholderRepresentatives[]
+  cus_shareholders               cus_shareholders[]
+  emp_employees                  emp_employees[]
+  grl_auditLogs                  grl_auditLogs[]
+  grl_company                    grl_company[]
+  grl_personsIdenType            grl_personsIdenType              @relation(fields: [idenType_id], references: [id], onUpdate: NoAction, map: "FK_persons_idenType")
+  grl_countries                  grl_countries?                   @relation(fields: [nationality_id], references: [id], onUpdate: NoAction, map: "FK_persons_nationality")
+  grl_profile                    grl_profile[]
+  grl_users                      grl_users[]
+}
+
+model grl_personsIdenType {
+  id          Int           @id(map: "PK__personsI__3213E83F6D7A2DB4") @default(autoincrement())
+  type        String        @unique(map: "UQ__personsI__E3F8524853312146") @db.VarChar(50)
+  createdAt   DateTime      @default(now(), map: "DF__personsId__creat__74794A92")
+  updatedAt   DateTime      @default(now(), map: "DF__personsId__updat__756D6ECB")
+  deletedAt   DateTime?
+  grl_persons grl_persons[]
+}
+
+model grl_profile {
+  id          String      @id(map: "PK__profile__3213E83F5C27211E") @default(dbgenerated("newid()"), map: "DF__profile__id__76619304") @db.UniqueIdentifier
+  user_id     String      @db.UniqueIdentifier
+  person_id   String      @db.UniqueIdentifier
+  theme       Int
+  photo       String?     @db.VarChar(255)
+  createdAt   DateTime    @default(now(), map: "DF__profile__created__7755B73D")
+  updatedAt   DateTime    @default(now(), map: "DF__profile__updated__7849DB76")
+  deletedAt   DateTime?
+  grl_persons grl_persons @relation(fields: [person_id], references: [id], onUpdate: NoAction, map: "FK_profile_person")
+  grl_users   grl_users   @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "FK_profile_user")
+}
+
+model grl_roadTypes {
+  id                                                    Int             @id(map: "PK_grl_roadTypes") @default(autoincrement())
+  name                                                  String?         @db.VarChar(50)
+  abbreviation                                          String?         @db.VarChar(50)
+  createdAt                                             DateTime?
+  updatedAt                                             DateTime?
+  deletedAt                                             DateTime?
+  grl_locations_grl_locations_roadType_1Togrl_roadTypes grl_locations[] @relation("grl_locations_roadType_1Togrl_roadTypes")
+  grl_locations_grl_locations_roadType_2Togrl_roadTypes grl_locations[] @relation("grl_locations_roadType_2Togrl_roadTypes")
+}
+
+model grl_rolePermissions {
+  role_id         Int
+  permission_id   Int
+  createdAt       DateTime        @default(now(), map: "DF__rolePermi__creat__02C769E9")
+  updatedAt       DateTime        @default(now(), map: "DF__rolePermi__updat__03BB8E22")
+  deletedAt       DateTime?
+  grl_permissions grl_permissions @relation(fields: [permission_id], references: [id], onUpdate: NoAction, map: "FK_rolePermissions_permission")
+  grl_roles       grl_roles       @relation(fields: [role_id], references: [id], onUpdate: NoAction, map: "FK_rolePermissions_role")
+
+  @@id([role_id, permission_id], map: "PK_rolePermissions")
+}
+
+model grl_roles {
+  id                  Int                   @id(map: "PK__roles__3213E83FE9E13122") @default(autoincrement())
+  name                String                @unique(map: "UQ__roles__72E12F1B568A9188") @db.VarChar(50)
+  description         String?               @db.VarChar(255)
+  createdAt           DateTime              @default(now(), map: "DF__roles__createdAt__04AFB25B")
+  updatedAt           DateTime              @default(now(), map: "DF__roles__updatedAt__05A3D694")
+  deletedAt           DateTime?
+  grl_rolePermissions grl_rolePermissions[]
+  grl_users           grl_users[]
+}
+
+model grl_states {
+  id            Int             @id(map: "PK__states__3213E83FA1945E7B") @default(autoincrement())
+  country_id    Int
+  name          String          @db.VarChar(255)
+  createdAt     DateTime        @default(now(), map: "DF__states__createdA__0F2D40CE")
+  updatedAt     DateTime        @default(now(), map: "DF__states__updatedA__10216507")
+  deletedAt     DateTime?
+  grl_cities    grl_cities[]
+  grl_locations grl_locations[]
+  grl_countries grl_countries   @relation(fields: [country_id], references: [id], onUpdate: NoAction, map: "FK_state_country")
+}
+
+model grl_users {
+  id                String              @id(map: "PK__users__3213E83FCACEB78B") @default(dbgenerated("newid()"), map: "DF__users__id__11158940") @db.UniqueIdentifier
+  username          String              @unique(map: "IX_grl_users") @db.VarChar(255)
+  password          String              @db.VarChar(255)
+  role_id           Int?
+  mail              String              @db.VarChar(255)
+  person_id         String              @db.UniqueIdentifier
+  status            Boolean
+  createdAt         DateTime            @default(now(), map: "DF__users__createdAt__1209AD79")
+  updatedAt         DateTime            @default(now(), map: "DF__users__updatedAt__12FDD1B2")
+  deletedAt         DateTime?
+  emp_employees     emp_employees[]
+  grl_notifications grl_notifications[]
+  grl_profile       grl_profile[]
+  grl_persons       grl_persons         @relation(fields: [person_id], references: [id], onUpdate: NoAction, map: "FK_users_person")
+  grl_roles         grl_roles?          @relation(fields: [role_id], references: [id], onUpdate: NoAction, map: "FK_users_role")
+}
+
+model sysdiagrams {
+  name         String @db.NVarChar(128)
+  principal_id Int
+  diagram_id   Int    @id(map: "PK__sysdiagr__C2B05B6169568F93") @default(autoincrement())
+  version      Int?
+  definition   Bytes?
+
+  @@unique([principal_id, name], map: "UK_principal_name")
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view vw_FullLocationDetails {
+  idLocation  String  @db.UniqueIdentifier @unique
+  countryName String? @db.VarChar(255)
+  stateName   String? @db.VarChar(255)
+  cityName    String? @db.VarChar(255)
+  location    String? @db.NVarChar(982)
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view vw_EmployeeDetailsImproved {
+  idEmployee         String    @db.UniqueIdentifier @unique
+  idPerson           String    @db.UniqueIdentifier
+  idUser             String    @db.UniqueIdentifier
+  companyName        String?   @db.VarChar(255)
+  identificationType String?   @db.VarChar(50)
+  identification     String    @db.VarChar(255)
+  employeeFullName   String    @db.VarChar(203)
+  birthDate          DateTime? @db.Date
+  gender             String?   @db.VarChar(50)
+  nationality        String?   @db.VarChar(255)
+  bloodType          String?   @db.VarChar(5)
+  employeeEmail      String?   @db.VarChar(255)
+  addressCountry     String?   @db.VarChar(255)
+  addressState       String?   @db.VarChar(255)
+  addressCity        String?   @db.VarChar(255)
+  fullAddress        String?   @db.NVarChar(982)
+  hireDate           DateTime  @db.Date
+  terminationDate    DateTime? @db.Date
+  contractType       String?   @db.VarChar(50)
+  initialSalary      Decimal   @db.Decimal(10, 2)
+  probationPeriod    Int?
+  hireRemarks        String?   @db.NVarChar(Max)
+  positionName       String    @db.VarChar(255)
+  departmentName     String    @db.VarChar(255)
+  bossFullName       String    @db.VarChar(203)
+  bossPositionName   String?   @db.VarChar(255)
+  parentPositionName String?   @db.VarChar(255)
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view vw_Cities {
+  ID          Int @unique
+  countryId   Int?
+  countryName String?  @db.VarChar(255)
+  stateId     Int?
+  stateName    String?  @db.VarChar(255)
+  cityId      Int?
+  cityName    String?  @db.VarChar(255)
+}
